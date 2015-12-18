@@ -10,7 +10,7 @@
 - name: load some data into hive and select
   run_once: yes
   sudo_user: '{{mapr_admin_username}}'
-  command: hive -e "CREATE TABLE IF NOT EXISTS pokes (foo INT, bar STRING); LOAD DATA LOCAL INPATH '/opt/mapr/hive/hive-1.0/examples/files/kv1.txt' OVERWRITE INTO TABLE pokes; SELECT * FROM pokes;"
+  command: hive -e "CREATE TABLE IF NOT EXISTS pokes (foo INT, bar STRING); LOAD DATA LOCAL INPATH '/opt/mapr/hive/hive-{{hive_version}}/examples/files/kv1.txt' OVERWRITE INTO TABLE pokes; SELECT * FROM pokes;"
   changed_when: False
 
 - name: drop pokes table
