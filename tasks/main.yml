@@ -1,7 +1,7 @@
 ---
 # tasks file for mapr_hive_test
 
-- name: run a minimal hive command
+- name: run "hive -e 'show tables'"
   run_once: yes
   sudo_user: '{{mapr_admin_username}}'
   command: hive -e 'show tables'
