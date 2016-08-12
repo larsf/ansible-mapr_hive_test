@@ -8,12 +8,35 @@
   command: hive -e 'show tables'
   changed_when: False
 
-- name: load some data into hive and select
+- name: load some data into hive with hive shell
   run_once: yes
   become: yes
   become_user: '{{mapr_admin_username}}'
-  command: hive -e "CREATE TABLE IF NOT EXISTS pokes (foo INT, bar STRING); LOAD DATA LOCAL INPATH '/opt/mapr/hive/hive-{{hive_version}}/examples/files/kv1.txt' OVERWRITE INTO TABLE pokes; SELECT * FROM pokes;"
+  command: hive -e "CREATE TABLE IF NOT EXISTS pokes (foo INT, bar STRING); LOAD DATA LOCAL INPATH '/opt/mapr/hive/hive-{{hive_version}}/examples/files/kv1.txt' OVERWRITE INTO TABLE pokes;"
   changed_when: False
+
+- name: execute a simple query via hive shell
+  run_once: yes
+  become: yes
+  become_user: '{{mapr_admin_username}}'
+  command: hive -e "select * from pokes;"
+  changed_when: false
+
+- name: execute a simple query via beeline
+  run_once: yes
+  become: yes
+  become_user: '{{mapr_admin_username}}'
+  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{inventory_hostname}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %}-n {{mapr_admin_username}}{% endif %} -e 'select * from pokes'"
+  when: "inventory_hostname in groups['hiveserver']"
+  changed_when: false
+
+- name: execute a query that triggers mapreduce via beeline
+  run_once: yes
+  become: yes
+  become_user: '{{mapr_admin_username}}'
+  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{inventory_hostname}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %} -n {{mapr_admin_username}}{% endif %} -e 'select count(*) from pokes'"
+  when: "inventory_hostname in groups['hiveserver']"
+  changed_when: false
 
 - name: drop pokes table
   run_once: yes

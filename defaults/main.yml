@@ -2,4 +2,5 @@
 # defaults file for mapr_hive_test
 
 hive_version: 1.2
-hive_build: 201511180952
+hive_build: "*"
+hiveserver2_port: 10000
