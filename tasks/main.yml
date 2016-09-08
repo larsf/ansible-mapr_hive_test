@@ -1,6 +1,18 @@
 ---
 # tasks file for mapr_hive_test
 
+- name: get the active hs2
+  become: yes
+  become_user: '{{mapr_admin_username}}'
+  shell: maprcli node list -filter svc==hs2 -columns hostname -noheader | awk '{print $1}'
+  register: active_hs2
+
+- name: get the active hivemeta
+  become: yes
+  become_user: '{{mapr_admin_username}}'
+  shell: maprcli node list -filter svc==hivemeta -columns hostname -noheader | awk '{print $1}'
+  register: active_hivemeta
+
 - name: run "hive -e 'show tables'"
   run_once: yes
   become: yes
@@ -26,7 +38,7 @@
   run_once: yes
   become: yes
   become_user: '{{mapr_admin_username}}'
-  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{inventory_hostname}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %}-n {{mapr_admin_username}}{% endif %} -e 'select * from pokes'"
+  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{active_hs2.stdout}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %}-n {{mapr_admin_username}}{% endif %} -e 'select * from pokes'"
   when: "inventory_hostname in groups['hiveserver']"
   changed_when: false
 
@@ -34,7 +46,7 @@
   run_once: yes
   become: yes
   become_user: '{{mapr_admin_username}}'
-  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{inventory_hostname}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %} -n {{mapr_admin_username}}{% endif %} -e 'select count(*) from pokes'"
+  command: "/opt/mapr/hive/hive-{{hive_version}}/bin/beeline -u 'jdbc:hive2://{{active_hs2.stdout}}:{{hiveserver2_port}}/default;{% if secure_cluster == True %}auth=MAPRSASL{% endif %}' {% if secure_cluster == False %} -n {{mapr_admin_username}}{% endif %} -e 'select count(*) from pokes'"
   when: "inventory_hostname in groups['hiveserver']"
   changed_when: false
 
